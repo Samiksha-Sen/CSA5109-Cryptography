@@ -1,0 +1,58 @@
+def generate_matrix(key):
+    key = key.upper().replace('J', 'I')
+    matrix = []
+    for c in key:
+        if c not in matrix and c.isalpha():
+            matrix.append(c)
+    for c in "ABCDEFGHIKLMNOPQRSTUVWXYZ":
+        if c not in matrix:
+            matrix.append(c)
+    return [matrix[i:i+5] for i in range(0, 25, 5)]
+
+def format_text(text):
+    text = text.upper().replace('J', 'I').replace(' ', '')
+    new_text = ''
+    i = 0
+    while i < len(text):
+        a = text[i]
+        b = text[i+1] if i+1 < len(text) else 'X'
+        if a == b:
+            new_text += a + 'X'
+            i += 1
+        else:
+            new_text += a + b
+            i += 2
+    if len(new_text) % 2 != 0:
+        new_text += 'X'
+    return new_text
+
+def find_char(matrix, char):
+    for row in range(5):
+        for col in range(5):
+            if matrix[row][col] == char:
+                return row, col
+    return None, None
+
+def encrypt_pair(matrix, a, b):
+    row1, col1 = find_char(matrix, a)
+    row2, col2 = find_char(matrix, b)
+    if row1 == row2:
+        return matrix[row1][(col1+1)%5] + matrix[row2][(col2+1)%5]
+    elif col1 == col2:
+        return matrix[(row1+1)%5][col1] + matrix[(row2+1)%5][col2]
+    else:
+        return matrix[row1][col2] + matrix[row2][col1]
+
+def playfair_encrypt(plaintext, key):
+    matrix = generate_matrix(key)
+    plaintext = format_text(plaintext)
+    ciphertext = ''
+    for i in range(0, len(plaintext), 2):
+        ciphertext += encrypt_pair(matrix, plaintext[i], plaintext[i+1])
+    return ciphertext
+
+# Example
+key = "KEYWORD"
+text = "HELLO WORLD"
+encrypted = playfair_encrypt(text, key)
+print("Encrypted:", encrypted)
