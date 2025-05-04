@@ -1,0 +1,50 @@
+def encrypt_rail_fence(text, rails):
+    result = [''] * rails
+    rail = 0
+    direction = 1
+
+    for char in text:
+        result[rail] += char
+        rail += direction
+        if rail == 0 or rail == rails - 1:
+            direction *= -1
+
+    return ''.join(result)
+
+def decrypt_rail_fence(cipher, rails):
+    pattern = [0] * len(cipher)
+    rail = 0
+    direction = 1
+
+    # Mark the zigzag pattern
+    for i in range(len(cipher)):
+        pattern[i] = rail
+        rail += direction
+        if rail == 0 or rail == rails - 1:
+            direction *= -1
+
+    # Count how many letters in each rail
+    counts = [pattern.count(r) for r in range(rails)]
+    idx = 0
+    rails_data = []
+
+    for count in counts:
+        rails_data.append(list(cipher[idx:idx+count]))
+        idx += count
+
+     # Reconstruct original text
+    result = ''
+    positions = [0] * rails
+    for r in pattern:
+        result += rails_data[r][positions[r]]
+        positions[r] += 1
+
+    return result
+
+# Example
+msg = "HELLOWORLD"
+encrypted = encrypt_rail_fence(msg, 3)
+decrypted = decrypt_rail_fence(encrypted, 3)
+
+print("Encrypted:", encrypted)
+print("Decrypted:", decrypted)
