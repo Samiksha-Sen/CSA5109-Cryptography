@@ -1,0 +1,47 @@
+# Basic math functions
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+def find_mod_inverse(e, phi):
+    for d in range(1, phi):
+        if (d * e) % phi == 1:
+            return d
+    return None
+
+# Key generation
+def generate_keys():
+    p = 5
+    q = 11
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    e = 3  # choose a small public exponent
+    while gcd(e, phi) != 1:
+        e += 2
+    d = find_mod_inverse(e, phi)
+    return (e, n), (d, n)
+
+# Encrypt message
+def encrypt(message, public_key):
+    e, n = public_key
+    encrypted = [pow(ord(char), e, n) for char in message]
+    return encrypted
+
+# Decrypt message
+def decrypt(encrypted_msg, private_key):
+    d, n = private_key
+    decrypted = ''.join([chr(pow(char, d, n)) for char in encrypted_msg])
+    return decrypted
+
+# Example usage
+public_key, private_key = generate_keys()
+print("Public Key:", public_key)
+print("Private Key:", private_key)
+
+text = "HI"
+encrypted = encrypt(text, public_key)
+print("Encrypted:", encrypted)
+
+decrypted = decrypt(encrypted, private_key)
+print("Decrypted:", decrypted)
