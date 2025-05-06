@@ -1,0 +1,15 @@
+import socket
+
+# Create a raw socket
+sniffer = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+
+print("Sniffer started...")
+
+while True:
+    raw_data, addr = sniffer.recvfrom(65536)
+    dest_port = raw_data[23]  # crude way to check destination port in TCP/UDP
+
+    if dest_port == 23:
+        print("[ALERT] Suspicious traffic detected on port 23 (Telnet)")
+    else:
+        print("[INFO] Packet captured")
