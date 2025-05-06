@@ -1,0 +1,60 @@
+import hashlib
+import random
+
+# Euclidean Algorithm to compute GCD
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+# Extended Euclidean Algorithm to find modular inverse
+def mod_inverse(a, m):
+    m0, x0, x1 = m, 0, 1
+    while a > 1:
+        q = a // m
+        a, m = m, a % m
+        x0, x1 = x1 - q * x0, x0
+    return x1 + m0 if x1 < 0 else x1
+
+# Simple hash function using SHA-1
+def hash_message(message):
+    return int(hashlib.sha1(message.encode()).hexdigest(), 16)
+
+# Key generation (simplified)
+def generate_keys():
+    p = 23  # prime modulus
+    q = 11  # another small prime, q divides p-1
+    g = 2   # generator
+
+    x = random.randint(1, q - 1)  # private key
+    y = pow(g, x, p)              # public key
+
+    return (p, q, g, x, y)
+
+# Signature generation
+def sign(message, p, q, g, x):
+    h = hash_message(message) % q
+    k = random.randint(1, q - 1)
+    r = pow(g, k, p) % q
+    k_inv = mod_inverse(k, q)
+    s = (k_inv * (h + x * r)) % q
+    return (r, s)
+
+# Signature verification
+def verify(message, r, s, p, q, g, y):
+    h = hash_message(message) % q
+    w = mod_inverse(s, q)
+    u1 = (h * w) % q
+    u2 = (r * w) % q
+    v = ((pow(g, u1, p) * pow(y, u2, p)) % p) % q
+    return v == r
+
+# Example usage
+p, q, g, x, y = generate_keys()
+message = "Hello, this is a test message."
+
+r, s = sign(message, p, q, g, x)
+print("Signature (r, s):", r, s)
+
+valid = verify(message, r, s, p, q, g, y)
+print("Is the signature valid?", valid)
