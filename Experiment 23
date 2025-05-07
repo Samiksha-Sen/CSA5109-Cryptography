@@ -1,0 +1,39 @@
+
+def binstr_to_bytes(bstr):
+    return [int(bstr[i:i+8], 2) for i in range(0, len(bstr), 8)]
+
+def bytes_to_binstr(b):
+    return ''.join(f'{byte:08b}' for byte in b)
+
+def sdes_encrypt_byte(byte, keystream_byte):
+    return byte ^ keystream_byte
+
+def generate_keystream(key, counter_start, num_blocks):
+    keystream = []
+    for i in range(num_blocks):
+        counter = (counter_start + i) % 256  # 8-bit counter
+        key_byte = int(key[:8], 2)  # Use first 8 bits of key for simplicity
+        ks_byte = counter ^ key_byte
+        keystream.append(ks_byte)
+    return keystream
+
+def ctr_encrypt_decrypt(plaintext_bytes, key, counter_start):
+    keystream = generate_keystream(key, counter_start, len(plaintext_bytes))
+    result = [sdes_encrypt_byte(p, k) for p, k in zip(plaintext_bytes, keystream)]
+    return result
+
+key = '0111111101'  
+plaintext_bin = '00000001 00000010 00000100'.replace(' ', '')
+expected_cipher_bin = '00111000 01001111 00110010'.replace(' ', '')
+
+
+plaintext_bytes = binstr_to_bytes(plaintext_bin)
+expected_cipher_bytes = binstr_to_bytes(expected_cipher_bin)
+
+
+cipher_bytes = ctr_encrypt_decrypt(plaintext_bytes, key, counter_start=0)
+print("Encrypted:", bytes_to_binstr(cipher_bytes))
+
+
+decrypted_bytes = ctr_encrypt_decrypt(cipher_bytes, key, counter_start=0)
+print("Decrypted:", bytes_to_binstr(decrypted_bytes))
