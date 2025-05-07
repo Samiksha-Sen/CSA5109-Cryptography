@@ -1,0 +1,92 @@
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+def pad(data, block_size=8):
+    pad_len = block_size - (len(data) % block_size)
+    return data + bytes([0x80] + [0x00] * (pad_len - 1))
+
+def unpad(data):
+    return data.rstrip(b'\x00').rstrip(b'\x80')
+
+def block_cipher_encrypt(block, key):
+    return xor_bytes(block[::-1], key)
+
+def block_cipher_decrypt(block, key):
+    return xor_bytes(block, key)[::-1]
+
+def ecb_encrypt(plaintext, key):
+    plaintext = pad(plaintext)
+    ciphertext = b''
+    for i in range(0, len(plaintext), 8):
+        block = plaintext[i:i+8]
+        ciphertext += block_cipher_encrypt(block, key)
+    return ciphertext
+
+def ecb_decrypt(ciphertext, key):
+    plaintext = b''
+    for i in range(0, len(ciphertext), 8):
+        block = ciphertext[i:i+8]
+        plaintext += block_cipher_decrypt(block, key)
+    return unpad(plaintext)
+
+def cbc_encrypt(plaintext, key, iv):
+    plaintext = pad(plaintext)
+    ciphertext = b''
+    prev = iv
+    for i in range(0, len(plaintext), 8):
+        block = xor_bytes(plaintext[i:i+8], prev)
+        encrypted = block_cipher_encrypt(block, key)
+        ciphertext += encrypted
+        prev = encrypted
+    return ciphertext
+
+def cbc_decrypt(ciphertext, key, iv):
+    plaintext = b''
+    prev = iv
+    for i in range(0, len(ciphertext), 8):
+        block = ciphertext[i:i+8]
+        decrypted = block_cipher_decrypt(block, key)
+        plaintext += xor_bytes(decrypted, prev)
+        prev = block
+    return unpad(plaintext)
+
+def cfb_encrypt(plaintext, key, iv):
+    ciphertext = b''
+    prev = iv
+    for i in range(0, len(plaintext), 8):
+        segment = plaintext[i:i+8]
+        enc = block_cipher_encrypt(prev, key)
+        out = xor_bytes(segment, enc)
+        ciphertext += out
+        prev = out
+    return ciphertext
+
+def cfb_decrypt(ciphertext, key, iv):
+    plaintext = b''
+    prev = iv
+    for i in range(0, len(ciphertext), 8):
+        segment = ciphertext[i:i+8]
+        enc = block_cipher_encrypt(prev, key)
+        out = xor_bytes(segment, enc)
+        plaintext += out
+        prev = segment
+    return plaintext  
+
+
+key = b'key12345'
+iv = b'ivinit99'
+message = b"HelloWorld1234" 
+print("\n--- ECB ---")
+ecb_c = ecb_encrypt(message, key)
+print("Encrypted:", ecb_c.hex())
+print("Decrypted:", ecb_decrypt(ecb_c, key).decode())
+
+print("\n--- CBC ---")
+cbc_c = cbc_encrypt(message, key, iv)
+print("Encrypted:", cbc_c.hex())
+print("Decrypted:", cbc_decrypt(cbc_c, key, iv).decode())
+
+print("\n--- CFB ---")
+cfb_c = cfb_encrypt(pad(message), key, iv)
+print("Encrypted:", cfb_c.hex())
+print("Decrypted:", cfb_decrypt(cfb_c, key, iv).decode())
