@@ -1,0 +1,63 @@
+
+def xor_bytes(a, b):
+    return bytes(x ^ y for x, y in zip(a, b))
+
+def pad(text):
+    pad_len = 8 - (len(text) % 8)
+    return text + bytes([pad_len] * pad_len)
+
+def unpad(padded):
+    pad_len = padded[-1]
+    return padded[:-pad_len]
+
+def des_encrypt_block(block, key):
+    return xor_bytes(block[::-1], key[:8])
+
+def des_decrypt_block(block, key):
+    return xor_bytes(block, key[:8])[::-1]
+
+
+def triple_des_encrypt_block(block, key1, key2, key3):
+    block = des_encrypt_block(block, key1)
+    block = des_decrypt_block(block, key2)
+    return des_encrypt_block(block, key3)
+
+def triple_des_decrypt_block(block, key1, key2, key3):
+    block = des_decrypt_block(block, key3)
+    block = des_encrypt_block(block, key2)
+    return des_decrypt_block(block, key1)
+
+
+def encrypt_cbc_3des(plaintext, key1, key2, key3, iv):
+    plaintext = pad(plaintext)
+    ciphertext = b''
+    prev_block = iv
+    for i in range(0, len(plaintext), 8):
+        block = xor_bytes(plaintext[i:i+8], prev_block)
+        encrypted = triple_des_encrypt_block(block, key1, key2, key3)
+        ciphertext += encrypted
+        prev_block = encrypted
+    return ciphertext
+
+def decrypt_cbc_3des(ciphertext, key1, key2, key3, iv):
+    plaintext = b''
+    prev_block = iv
+    for i in range(0, len(ciphertext), 8):
+        block = ciphertext[i:i+8]
+        decrypted = triple_des_decrypt_block(block, key1, key2, key3)
+        plaintext += xor_bytes(decrypted, prev_block)
+        prev_block = block
+    return unpad(plaintext)
+
+
+key1 = b'12345678'
+key2 = b'abcdefgh'
+key3 = b'87654321'
+iv = b'\x00' * 8
+
+plaintext = b"This is a test message!"
+ciphertext = encrypt_cbc_3des(plaintext, key1, key2, key3, iv)
+print("Ciphertext:", ciphertext.hex())
+
+decrypted = decrypt_cbc_3des(ciphertext, key1, key2, key3, iv)
+print("Decrypted:", decrypted.decode())
