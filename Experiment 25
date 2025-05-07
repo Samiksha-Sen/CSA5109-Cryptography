@@ -1,0 +1,20 @@
+import math
+
+# Example RSA public key
+n = 3599  # n = p * q
+e = 31    # public exponent
+
+# One of the plaintext blocks
+block = 61  # Suppose someone told us this has a common factor with n
+
+# Step 1: Compute GCD
+g = math.gcd(block, n)
+print(f"GCD(block, n) = {g}")
+
+# Step 2: If GCD > 1, we found a factor of n
+if g > 1 and g < n:
+    p = g
+    q = n // g
+    print(f"Found factors: p = {p}, q = {q}")
+else:
+    print("No useful factor found.")
