@@ -1,0 +1,30 @@
+def mod_exp(base, exp, mod):
+    result = 1
+    base %= mod
+    while exp > 0:
+        if exp % 2 == 1:
+            result = (result * base) % mod
+        base = (base * base) % mod
+        exp //= 2
+    return result
+
+# Simulated RSA public key (large n is not needed for this demo)
+e = 17
+n = 3233  # RSA modulus
+
+# Step 1: Precompute encryptions of A-Z
+encrypt_dict = {}
+for i in range(26):
+    encrypted = mod_exp(i, e, n)
+    encrypt_dict[encrypted] = i  # reverse map
+
+# Step 2: Simulate Alice's message
+message = "HELLO"
+plaintext_nums = [ord(c) - ord('A') for c in message]
+ciphertext = [mod_exp(num, e, n) for num in plaintext_nums]
+print("Ciphertext:", ciphertext)
+
+# Step 3: Attacker decrypts using dictionary
+decrypted_nums = [encrypt_dict[c] for c in ciphertext]
+decrypted_message = ''.join(chr(num + ord('A')) for num in decrypted_nums)
+print("Decrypted (attacker):", decrypted_message)
