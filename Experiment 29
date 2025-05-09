@@ -1,0 +1,37 @@
+import random
+
+# Constants
+LANE_SIZE = 64           # 64-bit lanes
+TOTAL_LANES = 25         # 5x5 matrix
+RATE_LANES = 1024 // 64  # 16 lanes
+CAPACITY_LANES = TOTAL_LANES - RATE_LANES  # 9 lanes
+
+# Initialize state: first 16 lanes (rate), next 9 lanes (capacity)
+state = [0] * TOTAL_LANES
+
+# Initialize the round counter
+rounds = 0
+
+# For simulation, we ignore permutations
+# Track how many rounds it takes for all capacity lanes to become non-zero
+while True:
+    rounds += 1
+    
+    # Simulate one message block: P0, P1, ..., with non-zero bits in rate lanes
+    for i in range(RATE_LANES):
+        message_lane = random.getrandbits(LANE_SIZE)
+        if message_lane == 0:
+            message_lane = 1  # Ensure at least 1 non-zero bit
+        state[i] ^= message_lane  # XOR message into the state
+
+    # Simulate bit spread to capacity lanes by XOR-ing with random rate lanes
+    for i in range(RATE_LANES, TOTAL_LANES):
+        influencing_lanes = random.sample(state[:RATE_LANES], k=3)
+        state[i] ^= influencing_lanes[0] ^ influencing_lanes[1] ^ influencing_lanes[2]
+
+    # Check if all capacity lanes are non-zero
+    capacity = state[RATE_LANES:]
+    if all(lane != 0 for lane in capacity):
+        break
+
+print("All capacity lanes became non-zero after", rounds, "message block(s).")
