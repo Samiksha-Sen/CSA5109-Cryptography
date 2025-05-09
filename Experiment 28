@@ -1,0 +1,17 @@
+
+a = 5    # primitive root modulo q
+q = 23   # a prime number
+
+alice_secret = 6
+A = (a ** alice_secret) % q  # A = a^x mod q
+
+bob_secret = 15
+B = (a ** bob_secret) % q    # B = a^y mod q
+
+alice_key = (B ** alice_secret) % q  # (a^y)^x mod q
+
+
+bob_key = (A ** bob_secret) % q      # (a^x)^y mod q
+
+print("Alice's key:", alice_key)
+print("Bob's key:", bob_key)
