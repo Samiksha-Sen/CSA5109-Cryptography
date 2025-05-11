@@ -1,0 +1,29 @@
+def xor_bytes(a: bytes, b: bytes) -> bytes:
+    return bytes(x ^ y for x, y in zip(a, b))
+
+def simple_cbc_mac(key: bytes, message: bytes, iv: bytes) -> bytes:
+    block_size = len(key)
+    prev_block = iv
+
+    for i in range(0, len(message), block_size):
+        block = message[i:i + block_size]
+        prev_block = xor_bytes(prev_block, block)
+        prev_block = simple_encrypt(prev_block, key)
+    
+    return prev_block
+
+def simple_encrypt(block: bytes, key: bytes) -> bytes:
+    return xor_bytes(block, key)
+
+key = b"thisiskey1234567"   # 16 bytes key
+iv = b"\x00" * 16           # Initialization vector (IV)
+X = b"attack at dawn!!"     # 16-byte block (one block)
+
+T = simple_cbc_mac(key, X, iv)
+
+X_xor_T = xor_bytes(X, T)
+two_block_message = X + X_xor_T
+T_two_block = simple_cbc_mac(key, two_block_message, iv)
+
+print(f"CBC-MAC of X: {T.hex()}")
+print(f"CBC-MAC of X || (X ⊕ T): {T_two_block.hex()}")
