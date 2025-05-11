@@ -1,0 +1,22 @@
+p = 23  # Prime modulus
+g = 5   # Generator
+x = 7   # Private key
+y = pow(g, x, p)  # Public key
+
+# Reused k (Insecure)
+k = 3
+
+# Two messages
+hash1 = 10  # Simulated hash of message 1
+hash2 = 15  # Simulated hash of message 2
+
+# Signatures using reused k
+r = pow(g, k, p)
+s1 = (hash1 + x * r) * pow(k, -1, p - 1) % (p - 1)
+s2 = (hash2 + x * r) * pow(k, -1, p - 1) % (p - 1)
+
+# Private key recovery
+x_recovered = ((s1 - s2) * pow(hash1 - hash2, -1, p - 1)) % (p - 1)
+
+print(f"Original Private Key: {x}")
+print(f"Recovered Private Key: {x_recovered}")
