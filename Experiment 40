@@ -1,0 +1,19 @@
+from collections import Counter
+
+def frequency_attack(ciphertext, top_n=10):
+    freq_order = "ETAOINSHRDLCUMWFGYPBVKJXQZ"
+    counts = Counter(char for char in ciphertext.upper() if char.isalpha())
+    cipher_freq = "".join([x[0] for x in counts.most_common()])
+    
+    plaintexts = []
+    for _ in range(top_n):
+        mapping = str.maketrans(cipher_freq, freq_order[:len(cipher_freq)])
+        plaintexts.append(ciphertext.upper().translate(mapping))
+        freq_order = freq_order[1:] + freq_order[0]  # Rotate frequency for variety
+    
+    return plaintexts
+
+# Example ciphertext
+ciphertext = "ZEBBW QEB IXWV ALD"
+plaintexts = frequency_attack(ciphertext, 10)
+print("\n".join(plaintexts))
